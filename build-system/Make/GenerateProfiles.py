@@ -115,6 +115,13 @@ def process_provisioning_profile(source, destination, certificate_data, signing_
     # Insert the new certificate
     run_executable_with_output('plutil', arguments=['-insert', 'DeveloperCertificates.0', '-data', certificate_data, parsed_plist_file])
 
+    # Verification builds use synthetic profiles that are re-signed with the local
+    # self-signed certificate. Extend their validity so Bazel can analyze device targets;
+    # the resulting IPA is re-signed with the user's own certificate before installation.
+    run_executable_with_output('plutil', arguments=[
+        '-replace', 'ExpirationDate', '-date', '2036-12-31T23:59:59Z', parsed_plist_file
+    ], check_result=True)
+
     # Remove the DER-Encoded-Profile (signature)
     run_executable_with_output('plutil', arguments=['-remove', 'DER-Encoded-Profile', parsed_plist_file])
 
