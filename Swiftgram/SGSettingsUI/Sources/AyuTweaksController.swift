@@ -77,8 +77,9 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
             let current = defaults.integer(forKey: "ayu.preferences.verificationType")
             let options = [
                 ("None", 0), ("Verified (local)", 1), ("Major", 2), ("Hold", 3)
-            ].map { title, value in
-                SGOneFromManyOption(title: title, isSelected: current == value, action: {
+            ].map { item in
+                let (title, value) = item
+                return SGOneFromManyOption(title: title, isSelected: current == value, action: {
                     defaults.set(value, forKey: "ayu.preferences.verificationType")
                     refresh.set(true)
                 })
