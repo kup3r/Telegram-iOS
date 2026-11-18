@@ -3,6 +3,7 @@ import UIKit
 import Display
 import SwiftSignalKit
 import TelegramPresentationData
+import TelegramCore
 import ItemListUI
 import AccountContext
 import SGItemListUI
@@ -193,7 +194,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
         entries.append(.notice(id: id.count, section: .gifts, text: "Upgrade assigns a local collectible number and animated frame. It is a visual client-side conversion, not a blockchain mint or Telegram gift transfer."))
         entries.append(.disclosure(id: id.count, section: .gifts, link: .reset, text: "Reset all AyuTweaks data"))
 
-        let controllerState = ItemListControllerState(presentationData: presentationData, title: "AyuTweaks", leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("AyuTweaks"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: entries, style: .blocks, ensureVisibleItemTag: nil, initialScrollToItem: nil)
         return (controllerState, (listState, arguments))
     }
