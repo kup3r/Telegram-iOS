@@ -140,6 +140,44 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
         }))
     }
 
+    if isMyProfile {
+        let defaults = UserDefaults.standard
+        let localPremium = defaults.bool(forKey: "ayu.preferences.localPremium")
+        let verification = defaults.integer(forKey: "ayu.preferences.verificationType")
+        let level = defaults.object(forKey: "ayu.preferences.profileLevel") == nil ? 80 : defaults.integer(forKey: "ayu.preferences.profileLevel")
+        let ghostMode = defaults.bool(forKey: "ayu.preferences.ghostMode")
+        let stars = defaults.integer(forKey: "ayu.preferences.visualStars")
+        let grams = defaults.double(forKey: "ayu.preferences.visualGrams")
+
+        if localPremium || verification != 0 || level != 80 || ghostMode || stars > 0 || grams > 0 {
+            var details: [String] = []
+            if localPremium { details.append("Premium (local)") }
+            switch verification {
+            case 1: details.append("Verified (local)")
+            case 2: details.append("Major (local)")
+            case 3: details.append("Hold (local)")
+            default: break
+            }
+            if level != 80 { details.append("Level \(level)") }
+            if ghostMode { details.append("Ghost Mode preference") }
+            if stars > 0 { details.append("\(stars) local Stars") }
+            if grams > 0 { details.append("\(String(format: "%.4g", grams)) local Grams") }
+
+            items.append(PeerInfoScreenLabeledValueItem(
+                id: itemId,
+                context: context,
+                label: "AyuTweaks · local preview",
+                text: details.joined(separator: "  •  "),
+                textColor: .primary,
+                action: nil,
+                longTapAction: nil,
+                contextAction: nil,
+                requestLayout: { _ in interaction.requestLayout(false) }
+            ))
+            itemId += 1
+        }
+    }
+
     return items
 }
 
