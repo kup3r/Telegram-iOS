@@ -140,6 +140,91 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
         }))
     }
 
+    if isMyProfile {
+        let defaults = UserDefaults.standard
+        let localPremium = defaults.bool(forKey: "ayu.preferences.localPremium")
+        let verification = defaults.integer(forKey: "ayu.preferences.verificationType")
+        let level = defaults.object(forKey: "ayu.preferences.profileLevel") == nil ? 80 : defaults.integer(forKey: "ayu.preferences.profileLevel")
+        let ghostMode = defaults.bool(forKey: "ayu.preferences.ghostMode")
+        let stars = defaults.integer(forKey: "ayu.preferences.visualStars")
+        let grams = defaults.double(forKey: "ayu.preferences.visualGrams")
+        let localGifts: [[String: Any]] = {
+            guard let data = defaults.data(forKey: "ayu.gifts.localCollection"),
+                  let records = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                return []
+            }
+            return records
+        }()
+
+        if localPremium || verification != 0 || level != 80 || ghostMode || stars > 0 || grams > 0 || !localGifts.isEmpty {
+            var details: [String] = []
+            if localPremium { details.append("Premium (local)") }
+            switch verification {
+            case 1: details.append("Verified (local)")
+            case 2: details.append("Major (local)")
+            case 3: details.append("Hold (local)")
+            default: break
+            }
+            if level != 80 { details.append("Level \(level)") }
+            if ghostMode { details.append("Ghost Mode preference") }
+            if stars > 0 { details.append("\(stars) local Stars") }
+            if grams > 0 { details.append("\(String(format: "%.4g", grams)) local Grams") }
+            if !localGifts.isEmpty { details.append("\(localGifts.count) local gifts") }
+
+            items.append(PeerInfoScreenLabeledValueItem(
+                id: itemId,
+                context: context,
+                label: "AyuTweaks · local preview",
+                text: details.joined(separator: "  •  "),
+                textColor: .primary,
+                action: nil,
+                longTapAction: nil,
+                contextAction: nil,
+                requestLayout: { _ in interaction.requestLayout(false) }
+            ))
+            itemId += 1
+        }
+
+        if stars > 0 || grams > 0 {
+            let balanceText = "Stars: \(stars.formatted())  •  Grams: \(String(format: "%.4g", grams))"
+            items.append(PeerInfoScreenLabeledValueItem(
+                id: itemId,
+                context: context,
+                label: "Ayu · balances (local)",
+                text: balanceText,
+                textColor: .primary,
+                action: nil,
+                longTapAction: nil,
+                contextAction: nil,
+                requestLayout: { _ in interaction.requestLayout(false) }
+            ))
+            itemId += 1
+        }
+
+        for gift in localGifts.prefix(12) {
+            let title = gift["title"] as? String ?? "Ayu Gift"
+            let rarity = (gift["rarity"] as? String ?? "common").capitalized
+            let isNFT = gift["isNFT"] as? Bool ?? false
+            let number = gift["nftNumber"] as? Int
+            let giftDescription = isNFT
+                ? "Local collectible #\(number ?? 0)  •  \(rarity)  •  animated frame"
+                : "\(rarity)  •  local gift"
+
+            items.append(PeerInfoScreenLabeledValueItem(
+                id: itemId,
+                context: context,
+                label: title,
+                text: giftDescription,
+                textColor: .primary,
+                action: nil,
+                longTapAction: nil,
+                contextAction: nil,
+                requestLayout: { _ in interaction.requestLayout(false) }
+            ))
+            itemId += 1
+        }
+    }
+
     return items
 }
 

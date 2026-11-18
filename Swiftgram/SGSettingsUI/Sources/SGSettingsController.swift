@@ -129,6 +129,7 @@ private enum SGSliderSetting: String {
 private enum SGDisclosureLink: String {
     case contentSettings
     case languageSettings
+    case ayuTweaks
 }
 
 private struct PeerNameColorScreenState: Equatable {
@@ -307,6 +308,7 @@ private func SGControllerEntries(presentationData: PresentationData, callListSet
     
     id.increment(10000)
     entries.append(.header(id: id.count, section: .other, text: strings.Appearance_Other.uppercased(), badge: nil))
+    entries.append(.disclosure(id: id.count, section: .other, link: .ayuTweaks, text: "AyuTweaks"))
     entries.append(.toggle(id: id.count, section: .other, settingName: .combinedMediaViewer, value: SGSimpleSettings.shared.combinedMediaViewer, text: i18n("Settings.CombinedMediaViewer", lang), enabled: true))
     entries.append(.notice(id: id.count, section: .other, text: i18n("Settings.CombinedMediaViewer.Notice", lang)))
     entries.append(.toggle(id: id.count, section: .other, settingName: .videoControlsInFooter, value: SGSimpleSettings.shared.videoControlsInFooter, text: i18n("Settings.videoControlsInFooter", lang), enabled: true))
@@ -696,6 +698,8 @@ public func sgSettingsController(context: AccountContext/*, focusOnItemTag: Int?
                     }
                     strongContext.sharedContext.applicationBindings.openUrl(url)
                 })
+            case .ayuTweaks:
+                pushControllerImpl?(ayuTweaksController(context: context))
         }
     }, searchInput: { searchQuery in
         updateState { state in
