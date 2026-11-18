@@ -159,11 +159,11 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
         entries.append(.disclosure(id: id.count, section: .gifts, link: .addGift, text: "Add sample gift"))
         for (giftIndex, gift) in gifts.enumerated() {
             let status = gift.isNFT
-                ? "NFT #\\(gift.nftNumber ?? 0) · \\(gift.rarity.capitalized) · animated frame"
-                : "\\(gift.rarity.capitalized) · ordinary local gift"
-            entries.append(.notice(id: id.count, section: .gifts, text: "\\(gift.title) — \\(status)"))
+                ? "NFT #\(gift.nftNumber ?? 0) · \(gift.rarity.capitalized) · animated frame"
+                : "\(gift.rarity.capitalized) · ordinary local gift"
+            entries.append(.notice(id: id.count, section: .gifts, text: "\(gift.title) — \(status)"))
             if !gift.isNFT {
-                entries.append(.disclosure(id: id.count, section: .gifts, link: .upgradeGift(giftIndex), text: "Upgrade “\\(gift.title)” to NFT collectible"))
+                entries.append(.disclosure(id: id.count, section: .gifts, link: .upgradeGift(giftIndex), text: "Upgrade “\(gift.title)” to NFT collectible"))
             }
         }
         if gifts.isEmpty {
