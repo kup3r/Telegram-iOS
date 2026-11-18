@@ -82,6 +82,7 @@ private final class AyuGiftGalleryCell: UICollectionViewCell {
 
 public final class AyuGiftGalleryController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     private let defaults = UserDefaults.standard
+    private var allGifts: [AyuGalleryGift] = []
     private var gifts: [AyuGalleryGift] = []
     private var collectionView: UICollectionView!
 
@@ -114,15 +115,17 @@ public final class AyuGiftGalleryController: UIViewController, UICollectionViewD
     @objc private func reloadGifts() {
         if let data = defaults.data(forKey: "ayu.gifts.localCollection"),
            let decoded = try? JSONDecoder().decode([AyuGalleryGift].self, from: data) {
-            gifts = decoded.filter { $0.isNFT }
+            allGifts = decoded
+            gifts = allGifts.filter { $0.isNFT }
         } else {
+            allGifts = []
             gifts = []
         }
         collectionView?.reloadData()
     }
 
     private func persist() {
-        guard let data = try? JSONEncoder().encode(gifts) else { return }
+        guard let data = try? JSONEncoder().encode(allGifts) else { return }
         defaults.set(data, forKey: "ayu.gifts.localCollection")
     }
 
@@ -145,10 +148,11 @@ public final class AyuGiftGalleryController: UIViewController, UICollectionViewD
         guard gifts.indices.contains(indexPath.item) else { return }
         let gift = gifts[indexPath.item]
         let detail = AyuGiftDetailController(gift: gift) { [weak self] worn in
-            guard let self, let index = self.gifts.firstIndex(where: { $0.id == gift.id }) else { return }
-            self.gifts[index].isWorn = worn
+            guard let self, let index = self.allGifts.firstIndex(where: { $0.id == gift.id }) else { return }
+            self.allGifts[index].isWorn = worn
+            self.gifts = self.allGifts.filter { $0.isNFT }
             self.persist()
-            self.collectionView.reloadItems(at: [indexPath])
+            self.collectionView.reloadData()
         }
         navigationController?.pushViewController(detail, animated: true)
     }
