@@ -75,7 +75,7 @@ private final class AyuGiftGalleryCell: UICollectionViewCell {
         shineView.backgroundColor = palette.1.withAlphaComponent(0.34)
         artView.image = UIImage(systemName: gift.title.localizedCaseInsensitiveContains("ring") ? "seal.fill" : "gift.fill")
         artView.tintColor = palette.2
-        numberLabel.text = gift.isNFT ? "#\\(gift.nftNumber ?? 0)" : "NEW"
+        numberLabel.text = gift.isNFT ? "#\(gift.nftNumber ?? 0)" : "NEW"
         pinView.isHidden = !(gift.isWorn ?? false)
     }
 }
@@ -114,7 +114,7 @@ public final class AyuGiftGalleryController: UIViewController, UICollectionViewD
     @objc private func reloadGifts() {
         if let data = defaults.data(forKey: "ayu.gifts.localCollection"),
            let decoded = try? JSONDecoder().decode([AyuGalleryGift].self, from: data) {
-            gifts = decoded
+            gifts = decoded.filter { $0.isNFT }
         } else {
             gifts = []
         }
@@ -200,13 +200,13 @@ private final class AyuGiftDetailController: UIViewController {
         art.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 116, weight: .regular)
         let name = UILabel()
         name.translatesAutoresizingMaskIntoConstraints = false
-        name.text = gift.isNFT ? "\\(gift.title) #\\(gift.nftNumber ?? 0)" : gift.title
+        name.text = gift.isNFT ? "\(gift.title) #\(gift.nftNumber ?? 0)" : gift.title
         name.textColor = .white
         name.font = .systemFont(ofSize: 25, weight: .bold)
         name.textAlignment = .center
         let model = UILabel()
         model.translatesAutoresizingMaskIntoConstraints = false
-        model.text = gift.isNFT ? "\\(gift.rarity.capitalized) Collectible" : "Ordinary gift · local preview"
+        model.text = gift.isNFT ? "\(gift.rarity.capitalized) Collectible" : "Ordinary gift · local preview"
         model.textColor = UIColor.white.withAlphaComponent(0.8)
         model.textAlignment = .center
         let actions = UIStackView()
