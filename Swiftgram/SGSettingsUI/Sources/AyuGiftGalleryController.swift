@@ -218,7 +218,7 @@ private final class AyuGiftDetailController: UIViewController {
         let wear = actionButton(gift.isWorn ?? false ? "Unwear" : "Wear", symbol: "crown.fill")
         let sell = actionButton("Sell", symbol: "tag.fill")
         [transfer, wear, sell].forEach { actions.addArrangedSubview($0) }
-        wear.addTarget(self, action: #selector(toggleWear), for: .touchUpInside)
+        wear.addTarget(self, action: #selector(toggleWear(_:)), for: .touchUpInside)
         transfer.addTarget(self, action: #selector(showLocalOnlyNotice), for: .touchUpInside)
         sell.addTarget(self, action: #selector(showLocalOnlyNotice), for: .touchUpInside)
         hero.addSubview(art); hero.addSubview(name); hero.addSubview(model); hero.addSubview(actions)
@@ -274,11 +274,11 @@ private final class AyuGiftDetailController: UIViewController {
         stack.addArrangedSubview(note)
     }
 
-    @objc private func toggleWear() {
+    @objc private func toggleWear(_ sender: UIButton) {
         let next = !(self.gift.isWorn ?? false)
         self.gift.isWorn = next
         self.onWearChanged(next)
-        self.navigationItem.rightBarButtonItem?.title = next ? "Worn" : nil
+        sender.setTitle(next ? "Unwear" : "Wear", for: .normal)
     }
 
     private func actionButton(_ title: String, symbol: String) -> UIButton {
