@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 
-public enum AyuGiftRarity: String, Codable, CaseIterable, Identifiable {
+public enum AyuGiftRarity: String, Codable, CaseIterable, Identifiable, Hashable {
     case common, rare, epic, legendary
     public var id: String { rawValue }
     public var title: String { rawValue.capitalized }
