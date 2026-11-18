@@ -36,7 +36,6 @@ sgsrcs = [
     "//Swiftgram/SGOutgoingTranslationLanguageSelection:SGOutgoingTranslationLanguageSelection",
     "//Swiftgram/SGSafariControllerUrlOpening:SGSafariControllerUrlOpening",
     "//Swiftgram/SGTelegramUIExtensions:SGTelegramUIExtensions", # MARK: Swiftgram
-    "//Swiftgram/SGPeerInfoRows:SGPeerInfoRows", # AyuTweaks local profile preview row
 ]
 
 #
