@@ -65,7 +65,7 @@ public struct AyuGiftCollectibleCard: View {
             VStack(spacing: 3) {
                 Text(gift.title).font(.headline).lineLimit(1)
                 if gift.isNFT {
-                    Text("#\\(gift.nftNumber ?? 0)  ·  \\(gift.rarity.title)")
+                    Text("#\(gift.nftNumber ?? 0)  ·  \(gift.rarity.title)")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(accent)
                 } else {
