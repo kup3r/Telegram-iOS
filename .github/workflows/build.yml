@@ -31,11 +31,17 @@ jobs:
           if [[ -d "$XCODE_PATH" ]]; then
             sudo xcode-select -s "$XCODE_PATH"
           else
-            ACTUAL_XCODE="$(xcodebuild -version | awk '/^Xcode / { print $2; exit }')"
+            # Do not pipe xcodebuild directly to awk/head: xcodebuild may
+            # receive SIGPIPE/Broken pipe when the reader exits early.
+            VERSION_FILE="$RUNNER_TEMP/xcode-version.txt"
+            xcodebuild -version > "$VERSION_FILE"
+            cat "$VERSION_FILE"
+            ACTUAL_XCODE="$(python3 -c 'import re,sys; s=open(sys.argv[1]).read(); m=re.search(r"(?m)^Xcode (\\S+)", s); print(m.group(1) if m else "")' "$VERSION_FILE")"
             echo "Requested Xcode $XCODE_VERSION; runner selected Xcode $ACTUAL_XCODE"
             [[ "$ACTUAL_XCODE" == 27.* ]] || { echo "Xcode 27 is required"; exit 1; }
           fi
-          xcodebuild -version
+          xcodebuild -version > "$RUNNER_TEMP/xcode-version-selected.txt"
+          cat "$RUNNER_TEMP/xcode-version-selected.txt"
           xcrun --sdk iphoneos --show-sdk-version
 
       - name: Create canonical source directory
