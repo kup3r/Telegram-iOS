@@ -218,16 +218,9 @@ private final class AyuGiftDetailController: UIViewController {
         let wear = actionButton(gift.isWorn ?? false ? "Unwear" : "Wear", symbol: "crown.fill")
         let sell = actionButton("Sell", symbol: "tag.fill")
         [transfer, wear, sell].forEach { actions.addArrangedSubview($0) }
-        wear.addAction(UIAction { [weak self] _ in
-            guard let self else { return }
-            let next = !(self.gift.isWorn ?? false)
-            self.gift.isWorn = next
-            self.onWearChanged(next)
-            wear.setTitle(next ? "Unwear" : "Wear", for: .normal)
-        }, for: .touchUpInside)
-        [transfer, sell].forEach { button in
-            button.addAction(UIAction { [weak self] _ in self?.showLocalOnlyNotice() }, for: .touchUpInside)
-        }
+        wear.addTarget(self, action: #selector(toggleWear), for: .touchUpInside)
+        transfer.addTarget(self, action: #selector(showLocalOnlyNotice), for: .touchUpInside)
+        sell.addTarget(self, action: #selector(showLocalOnlyNotice), for: .touchUpInside)
         hero.addSubview(art); hero.addSubview(name); hero.addSubview(model); hero.addSubview(actions)
         NSLayoutConstraint.activate([
             art.centerXAnchor.constraint(equalTo: hero.centerXAnchor), art.topAnchor.constraint(equalTo: hero.topAnchor, constant: 26),
@@ -281,20 +274,27 @@ private final class AyuGiftDetailController: UIViewController {
         stack.addArrangedSubview(note)
     }
 
+    @objc private func toggleWear() {
+        let next = !(self.gift.isWorn ?? false)
+        self.gift.isWorn = next
+        self.onWearChanged(next)
+        self.navigationItem.rightBarButtonItem?.title = next ? "Worn" : nil
+    }
+
     private func actionButton(_ title: String, symbol: String) -> UIButton {
-        var config = UIButton.Configuration.filled()
-        config.title = title
-        config.image = UIImage(systemName: symbol)
-        config.imagePlacement = .top
-        config.imagePadding = 3
-        config.baseBackgroundColor = UIColor.white.withAlphaComponent(0.22)
-        config.baseForegroundColor = .white
-        let button = UIButton(configuration: config)
+        let button = UIButton(type: .system)
+        button.setTitle(title, for: .normal)
+        button.setImage(UIImage(systemName: symbol), for: .normal)
+        button.tintColor = .white
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = UIColor.white.withAlphaComponent(0.22)
+        button.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
         button.layer.cornerRadius = 13
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
         return button
     }
 
-    private func showLocalOnlyNotice() {
+    @objc private func showLocalOnlyNotice() {
         let alert = UIAlertController(title: "Local preview only", message: "This prototype does not transfer or sell Telegram gifts and does not interact with a blockchain marketplace.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
