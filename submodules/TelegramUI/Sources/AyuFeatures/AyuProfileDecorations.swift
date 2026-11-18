@@ -34,7 +34,7 @@ public struct AyuProfileDecorations: View {
         case .normal: return "circle"
         case .official: return "checkmark.seal.fill"
         case .major: return "crown.fill"
-        case .hold: return "hand.raised.fill"
+        case .hold: return "star.fill"
         }
     }
 }
