@@ -1544,9 +1544,14 @@ if __name__ == '__main__':
             os.makedirs(remote_input_path + '/certs')
             os.makedirs(remote_input_path + '/profiles')
 
-            if os.path.exists(args.destination):
-                shutil.rmtree(args.destination)
-            os.makedirs(args.destination)
+            # Keep the source profiles intact while resolving codesigning inputs.
+            # args.destination can point to the same directory as
+            # args.codesigningInformationPath + '/profiles', so clearing it before
+            # resolve_configuration would silently remove every input profile.
+            verification_profiles_path = args.destination + '.generated'
+            if os.path.exists(verification_profiles_path):
+                shutil.rmtree(verification_profiles_path)
+            os.makedirs(verification_profiles_path)
 
             resolve_configuration(
                 base_path=os.getcwd(),
@@ -1556,7 +1561,15 @@ if __name__ == '__main__':
                 allow_missing_aps_environment=True
             )
 
-            GenerateProfiles.generate_provisioning_profiles(source_path=remote_input_path + '/profiles', destination_path=args.destination, certs_path=args.certsPath)
+            GenerateProfiles.generate_provisioning_profiles(
+                source_path=remote_input_path + '/profiles',
+                destination_path=verification_profiles_path,
+                certs_path=args.certsPath
+            )
+
+            if os.path.exists(args.destination):
+                shutil.rmtree(args.destination)
+            shutil.move(verification_profiles_path, args.destination)
         elif args.commandName == 'remote-deploy-testflight':
             env = os.environ
             if 'APPSTORE_CONNECT_USERNAME' not in env:
