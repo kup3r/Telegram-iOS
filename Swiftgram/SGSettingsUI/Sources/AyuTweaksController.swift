@@ -29,6 +29,7 @@ private enum AyuLink: Hashable {
     case addStars
     case addGrams
     case addGift
+    case openGallery
     case upgradeGift(Int)
     case reset
 }
@@ -60,6 +61,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
     let defaults = UserDefaults.standard
     let refresh = ValuePromise(true, ignoreRepeated: false)
     var selectorPresenter: ((AyuSelector, [SGOneFromManyOption]) -> Void)?
+    weak var galleryNavigationController: UINavigationController?
 
     let arguments = SGItemListArguments<AyuBoolSetting, AyuSelector, AyuSelector, AyuLink, AnyHashable>(
         context: context,
@@ -97,6 +99,9 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
                 defaults.set(min(1_000_000, defaults.integer(forKey: "ayu.preferences.visualStars") + 100), forKey: "ayu.preferences.visualStars")
             case .addGrams:
                 defaults.set(max(0, defaults.double(forKey: "ayu.preferences.visualGrams") + 10), forKey: "ayu.preferences.visualGrams")
+            case .openGallery:
+                let gallery = AyuGiftGalleryController()
+                galleryNavigationController?.pushViewController(gallery, animated: true)
             case .addGift:
                 var gifts = ayuGiftRecords(defaults: defaults)
                 gifts.append(AyuStoredGift(id: UUID(), title: "Ayu Gift", rarity: "common", isNFT: false, nftNumber: nil, hasAnimatedFrame: false))
@@ -156,6 +161,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
 
         entries.append(.header(id: id.count, section: .gifts, text: "Local gift collection", badge: nil))
         entries.append(.notice(id: id.count, section: .gifts, text: "Gifts: \(gifts.count)   •   Local collectibles: \(localNFTCount)"))
+        entries.append(.disclosure(id: id.count, section: .gifts, link: .openGallery, text: "Open collectible gallery"))
         entries.append(.disclosure(id: id.count, section: .gifts, link: .addGift, text: "Add sample gift"))
         for (giftIndex, gift) in gifts.enumerated() {
             let status = gift.isNFT
@@ -178,6 +184,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
     }
 
     let controller = ItemListController(context: context, state: signal)
+    galleryNavigationController = controller.navigationController
     selectorPresenter = { [weak controller] setting, options in
         guard let controller else { return }
         sgPresentOneFromManySelector(controller: controller, setting: setting, presentationData: context.sharedContext.currentPresentationData.with { $0 }, options: options)
