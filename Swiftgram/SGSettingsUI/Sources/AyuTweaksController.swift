@@ -6,7 +6,6 @@ import TelegramPresentationData
 import ItemListUI
 import AccountContext
 import SGItemListUI
-import SGOneFromManySelector
 
 private enum AyuSection: Int32, SGItemListSection {
     case profile
@@ -149,7 +148,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
         entries.append(.notice(id: id.count, section: .privacy, text: "Saved locally only. This does not change read receipts, online status, or network activity."))
 
         entries.append(.header(id: id.count, section: .balances, text: "Local balance preview", badge: nil))
-        entries.append(.notice(id: id.count, section: .balances, text: "Stars: \(stars)   •   Grams: \(grams.formatted(.number.precision(.fractionLength(0...4))))"))
+        entries.append(.notice(id: id.count, section: .balances, text: "Stars: \(stars)   •   Grams: \(String(format: "%.4g", grams))"))
         entries.append(.disclosure(id: id.count, section: .balances, link: .addStars, text: "Add 100 local Stars"))
         entries.append(.disclosure(id: id.count, section: .balances, link: .addGrams, text: "Add 10 local Grams"))
         entries.append(.notice(id: id.count, section: .balances, text: "Preview values only; they do not affect wallet, payments, or server balances."))
