@@ -122,6 +122,14 @@ def process_provisioning_profile(source, destination, certificate_data, signing_
         '-replace', 'ExpirationDate', '-date', '2036-12-31T23:59:59Z', parsed_plist_file
     ], check_result=True)
 
+    # The synthetic main-app profile is used to derive the build's APS environment.
+    # The bundled template does not carry this entitlement, so explicitly restore the
+    # production value expected by an App Store-style device build.
+    if os.path.basename(source) == 'Telegram.mobileprovision':
+        run_executable_with_output('plutil', arguments=[
+            '-insert', 'Entitlements.aps-environment', '-string', 'production', parsed_plist_file
+        ], check_result=True)
+
     # Remove the DER-Encoded-Profile (signature)
     run_executable_with_output('plutil', arguments=['-remove', 'DER-Encoded-Profile', parsed_plist_file])
 
