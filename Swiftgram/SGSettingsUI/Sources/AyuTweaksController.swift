@@ -61,7 +61,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
     let defaults = UserDefaults.standard
     let refresh = ValuePromise(true, ignoreRepeated: false)
     var selectorPresenter: ((AyuSelector, [SGOneFromManyOption]) -> Void)?
-    weak var galleryNavigationController: UINavigationController?
+    weak var settingsController: ViewController?
 
     let arguments = SGItemListArguments<AyuBoolSetting, AyuSelector, AyuSelector, AyuLink, AnyHashable>(
         context: context,
@@ -101,7 +101,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
                 defaults.set(max(0, defaults.double(forKey: "ayu.preferences.visualGrams") + 10), forKey: "ayu.preferences.visualGrams")
             case .openGallery:
                 let gallery = AyuGiftGalleryController()
-                galleryNavigationController?.pushViewController(gallery, animated: true)
+                settingsController?.navigationController?.pushViewController(gallery, animated: true)
             case .addGift:
                 var gifts = ayuGiftRecords(defaults: defaults)
                 gifts.append(AyuStoredGift(id: UUID(), title: "Ayu Gift", rarity: "common", isNFT: false, nftNumber: nil, hasAnimatedFrame: false))
@@ -184,7 +184,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
     }
 
     let controller = ItemListController(context: context, state: signal)
-    galleryNavigationController = controller.navigationController
+    settingsController = controller
     selectorPresenter = { [weak controller] setting, options in
         guard let controller else { return }
         sgPresentOneFromManySelector(controller: controller, setting: setting, presentationData: context.sharedContext.currentPresentationData.with { $0 }, options: options)
