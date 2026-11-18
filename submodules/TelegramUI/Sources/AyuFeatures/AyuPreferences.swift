@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 
-public enum AyuVerificationType: Int, CaseIterable, Identifiable {
+public enum AyuVerificationType: Int, CaseIterable, Identifiable, Hashable {
     case normal = 0
     case official = 1
     case major = 2
