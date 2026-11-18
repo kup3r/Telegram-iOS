@@ -26,19 +26,13 @@ jobs:
         run: |
           set -euo pipefail
           XCODE_VERSION="$(python3 -c 'import json; print(json.load(open("versions.json"))["xcode"])')"
-          XCODE_PATH="/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
-          if [[ -d "$XCODE_PATH" ]]; then
-            sudo xcode-select -s "$XCODE_PATH"
-          else
-            VERSION_FILE="$RUNNER_TEMP/xcode-version.txt"
-            xcodebuild -version > "$VERSION_FILE"
-            cat "$VERSION_FILE"
-            ACTUAL_XCODE="$(python3 -c 'import re,sys; s=open(sys.argv[1]).read(); m=re.search(r"(?m)^Xcode (\\S+)", s); print(m.group(1) if m else "")' "$VERSION_FILE")"
-            echo "Requested Xcode $XCODE_VERSION; runner selected Xcode $ACTUAL_XCODE"
-            [[ "$ACTUAL_XCODE" == 27.* ]] || { echo "Xcode 27 is required"; exit 1; }
-          fi
-          xcodebuild -version > "$RUNNER_TEMP/xcode-version-selected.txt"
-          cat "$RUNNER_TEMP/xcode-version-selected.txt"
+          echo "Runner operating system:"
+          sw_vers
+          VERSION_FILE="$RUNNER_TEMP/xcode-version.txt"
+          xcodebuild -version | tee "$VERSION_FILE"
+          ACTUAL_XCODE="$(awk '/^Xcode / { print $2; exit }' "$VERSION_FILE")"
+          echo "Required Xcode: $XCODE_VERSION; selected Xcode: $ACTUAL_XCODE"
+          [[ "$ACTUAL_XCODE" == "$XCODE_VERSION" ]] || { echo "Xcode version mismatch"; exit 1; }
           xcrun --sdk iphoneos --show-sdk-version
 
       - name: Create canonical source directory
