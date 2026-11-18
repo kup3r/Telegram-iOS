@@ -41,3 +41,14 @@ The native Swiftgram Gift Workshop now presents the official Telegram collectibl
 - TON export: eligibility and 2-step verification requirements.
 
 These are visual prototypes only. They do not invoke Telegram payment forms, mutate saved gifts, create marketplace listings, transfer ownership or export assets to TON. The live Telegram API documents the corresponding methods in https://core.telegram.org/api/gifts.
+
+
+## Native Telegram collectible operations
+
+AyuTweaks now exposes a direct entry to the signed-in user's native Telegram profile. The profile's built-in Gifts pane is the authoritative interface for real owned gifts and existing Telegram operations. This repository already contains the corresponding TelegramEngine payment methods and native GiftViewScreen flows, including:
+- Upgrade preview and Stars payment flow (`starGiftUpgradePreview`, `upgradeStarGift`).
+- Transfer and withdrawal URL flow (`transferStarGift`, `requestStarGiftWithdrawalUrl`).
+- Resale price updates (`updateStarGiftResalePrice`).
+- Crafting and resale/craft contexts in TelegramCore.
+
+The separate Ayu local gallery/workshop remains a demo-only sandbox and must never be treated as a real NFT wallet. Use **Open Telegram Gifts** in AyuTweaks to access the actual account-backed collection and the native Telegram actions.
