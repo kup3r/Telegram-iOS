@@ -4,7 +4,7 @@ The AyuTweaks feature is connected to the existing Swiftgram UI:
 
 - `Swiftgram/SGSettingsUI/Sources/AyuTweaksController.swift` provides the native ItemList settings destination.
 - `SGSettingsController.swift` exposes an **AyuTweaks** disclosure row in the existing Swiftgram settings screen.
-- `SGPeerInfoRows.swift` adds a compact local-preview summary to the current user's profile when at least one Ayu option is customized.
+- `SGPeerInfoRows.swift` adds a local-preview summary to the current user's profile, a separate local Stars / Grams row when balances are non-zero, and up to 12 individual local gift rows with rarity, collectible number, and animated-frame state.
 - `submodules/TelegramUI/BUILD` includes the existing `SGPeerInfoRows` filegroup in the TelegramUI source set.
 - The files in this directory provide the reusable SwiftUI preview components and local preferences / gift store.
 
@@ -26,6 +26,6 @@ The "upgrade" action only changes a locally stored gift's visual state and assig
 
 ## Build / verification status
 
-The new destination is wired into the current Swiftgram settings navigation and the local summary is added to the existing self-profile row list. The source glob in `Swiftgram/SGSettingsUI/BUILD` includes the new controller automatically.
+The new destination is wired into the current Swiftgram settings navigation. The self-profile row list shows Ayu preferences, local balances, and individual local gifts; these are presentation-only rows, not the Telegram wallet or server gift list. The source glob in `Swiftgram/SGSettingsUI/BUILD` includes the new controller automatically.
 
 A full Bazel build and simulator visual inspection have not yet been run. Before release, compile the Telegram target and verify the settings navigation and self-profile row on a simulator.
