@@ -146,6 +146,22 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
         let verification = defaults.integer(forKey: "ayu.preferences.verificationType")
         let level = defaults.object(forKey: "ayu.preferences.profileLevel") == nil ? 80 : defaults.integer(forKey: "ayu.preferences.profileLevel")
         let ghostMode = defaults.bool(forKey: "ayu.preferences.ghostMode")
+        if verification == 2 || verification == 3 {
+            let organization = verification == 2 ? "Major" : "Hold"
+            let organizationIcon = verification == 2 ? "👑 " : "⭐ "
+            items.append(PeerInfoScreenLabeledValueItem(
+                id: itemId,
+                context: context,
+                label: organizationIcon + "Значок организации",
+                text: "Аккаунт верифицирован организацией «\(organization)»",
+                textColor: .primary,
+                action: nil,
+                longTapAction: nil,
+                contextAction: nil,
+                requestLayout: { _ in interaction.requestLayout(false) }
+            ))
+            itemId += 1
+        }
         let stars = defaults.integer(forKey: "ayu.preferences.visualStars")
         let grams = defaults.double(forKey: "ayu.preferences.visualGrams")
         let localGifts: [[String: Any]] = {
