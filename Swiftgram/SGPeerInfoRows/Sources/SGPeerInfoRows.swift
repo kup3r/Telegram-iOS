@@ -165,11 +165,11 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
             case 3: details.append("Hold (local)")
             default: break
             }
-            if level != 80 { details.append("Level \\(level)") }
+            if level != 80 { details.append("Level \(level)") }
             if ghostMode { details.append("Ghost Mode preference") }
-            if stars > 0 { details.append("\\(stars) local Stars") }
-            if grams > 0 { details.append("\\(String(format: "%.4g", grams)) local Grams") }
-            if !localGifts.isEmpty { details.append("\\(localGifts.count) local gifts") }
+            if stars > 0 { details.append("\(stars) local Stars") }
+            if grams > 0 { details.append("\(String(format: "%.4g", grams)) local Grams") }
+            if !localGifts.isEmpty { details.append("\(localGifts.count) local gifts") }
 
             items.append(PeerInfoScreenLabeledValueItem(
                 id: itemId,
@@ -186,7 +186,7 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
         }
 
         if stars > 0 || grams > 0 {
-            let balanceText = "Stars: \\(stars.formatted())  •  Grams: \\(String(format: "%.4g", grams))"
+            let balanceText = "Stars: \(stars.formatted())  •  Grams: \(String(format: "%.4g", grams))"
             items.append(PeerInfoScreenLabeledValueItem(
                 id: itemId,
                 context: context,
@@ -207,8 +207,8 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
             let isNFT = gift["isNFT"] as? Bool ?? false
             let number = gift["nftNumber"] as? Int
             let giftDescription = isNFT
-                ? "Local collectible #\\(number ?? 0)  •  \\(rarity)  •  animated frame"
-                : "\\(rarity)  •  local gift"
+                ? "Local collectible #\(number ?? 0)  •  \(rarity)  •  animated frame"
+                : "\(rarity)  •  local gift"
 
             items.append(PeerInfoScreenLabeledValueItem(
                 id: itemId,
