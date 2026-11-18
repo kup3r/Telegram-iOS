@@ -130,7 +130,8 @@ public final class AyuGiftWorkshopController: UIViewController {
         button.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
         button.contentHorizontalAlignment = .leading
         button.addTarget(self, action: action, for: .touchUpInside)
-        [icon, heading, body, button].forEach { card.addSubview($0); $0.translatesAutoresizingMaskIntoConstraints = false }
+        let views: [UIView] = [icon, heading, body, button]
+        views.forEach { card.addSubview($0); $0.translatesAutoresizingMaskIntoConstraints = false }
         NSLayoutConstraint.activate([
             icon.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
             icon.topAnchor.constraint(equalTo: card.topAnchor, constant: 17),
