@@ -29,7 +29,7 @@ private enum AyuLink: Hashable {
     case addStars
     case addGrams
     case addGift
-    case upgradeGift
+    case upgradeGift(Int)
     case reset
 }
 
@@ -101,15 +101,15 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
                 var gifts = ayuGiftRecords(defaults: defaults)
                 gifts.append(AyuStoredGift(id: UUID(), title: "Ayu Gift", rarity: "common", isNFT: false, nftNumber: nil, hasAnimatedFrame: false))
                 saveAyuGiftRecords(gifts, defaults: defaults)
-            case .upgradeGift:
+            case let .upgradeGift(giftIndex):
                 var gifts = ayuGiftRecords(defaults: defaults)
-                if let index = gifts.firstIndex(where: { !$0.isNFT }) {
+                if gifts.indices.contains(giftIndex), !gifts[giftIndex].isNFT {
                     let nextNumber = defaults.integer(forKey: "ayu.gifts.nextLocalNumber") + 1
                     defaults.set(nextNumber, forKey: "ayu.gifts.nextLocalNumber")
-                    gifts[index].isNFT = true
-                    gifts[index].nftNumber = nextNumber
-                    gifts[index].hasAnimatedFrame = true
-                    gifts[index].rarity = gifts[index].rarity == "legendary" ? "legendary" : "epic"
+                    gifts[giftIndex].isNFT = true
+                    gifts[giftIndex].nftNumber = nextNumber
+                    gifts[giftIndex].hasAnimatedFrame = true
+                    gifts[giftIndex].rarity = gifts[giftIndex].rarity == "legendary" ? "legendary" : "epic"
                     saveAyuGiftRecords(gifts, defaults: defaults)
                 }
             case .reset:
@@ -157,8 +157,19 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
         entries.append(.header(id: id.count, section: .gifts, text: "Local gift collection", badge: nil))
         entries.append(.notice(id: id.count, section: .gifts, text: "Gifts: \(gifts.count)   •   Local collectibles: \(localNFTCount)"))
         entries.append(.disclosure(id: id.count, section: .gifts, link: .addGift, text: "Add sample gift"))
-        entries.append(.disclosure(id: id.count, section: .gifts, link: .upgradeGift, text: "Upgrade first available gift to local collectible"))
-        entries.append(.notice(id: id.count, section: .gifts, text: "Upgrade is a visual local conversion only. It does not mint or transfer an NFT."))
+        for (giftIndex, gift) in gifts.enumerated() {
+            let status = gift.isNFT
+                ? "NFT #\\(gift.nftNumber ?? 0) · \\(gift.rarity.capitalized) · animated frame"
+                : "\\(gift.rarity.capitalized) · ordinary local gift"
+            entries.append(.notice(id: id.count, section: .gifts, text: "\\(gift.title) — \\(status)"))
+            if !gift.isNFT {
+                entries.append(.disclosure(id: id.count, section: .gifts, link: .upgradeGift(giftIndex), text: "Upgrade “\\(gift.title)” to NFT collectible"))
+            }
+        }
+        if gifts.isEmpty {
+            entries.append(.notice(id: id.count, section: .gifts, text: "Add a sample gift to try the local NFT upgrade."))
+        }
+        entries.append(.notice(id: id.count, section: .gifts, text: "Upgrade assigns a local collectible number and animated frame. It is a visual client-side conversion, not a blockchain mint or Telegram gift transfer."))
         entries.append(.disclosure(id: id.count, section: .gifts, link: .reset, text: "Reset all AyuTweaks data"))
 
         let controllerState = ItemListControllerState(presentationData: presentationData, title: "AyuTweaks", leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
