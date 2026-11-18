@@ -294,7 +294,10 @@ private final class AyuGiftDetailController: UIViewController {
         button.backgroundColor = UIColor.white.withAlphaComponent(0.22)
         button.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
         button.layer.cornerRadius = 13
-        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
+        button.configuration = .plain()
+        button.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 4, bottom: 8, trailing: 4)
+        button.configuration?.background.backgroundColor = UIColor.white.withAlphaComponent(0.22)
+        button.configuration?.cornerStyle = .medium
         return button
     }
 
