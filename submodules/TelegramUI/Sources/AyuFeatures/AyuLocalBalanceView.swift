@@ -2,7 +2,7 @@ import SwiftUI
 
 /// A local-only balance label. Never use this value for transactions or server requests.
 public struct AyuLocalBalanceView: View {
-    public enum Kind {
+    public enum Kind: Equatable {
         case stars
         case grams
     }
