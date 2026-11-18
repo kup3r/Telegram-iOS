@@ -148,8 +148,15 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
         let ghostMode = defaults.bool(forKey: "ayu.preferences.ghostMode")
         let stars = defaults.integer(forKey: "ayu.preferences.visualStars")
         let grams = defaults.double(forKey: "ayu.preferences.visualGrams")
+        let localGiftCount: Int = {
+            guard let data = defaults.data(forKey: "ayu.gifts.localCollection"),
+                  let records = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                return 0
+            }
+            return records.count
+        }()
 
-        if localPremium || verification != 0 || level != 80 || ghostMode || stars > 0 || grams > 0 {
+        if localPremium || verification != 0 || level != 80 || ghostMode || stars > 0 || grams > 0 || localGiftCount > 0 {
             var details: [String] = []
             if localPremium { details.append("Premium (local)") }
             switch verification {
@@ -162,6 +169,7 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
             if ghostMode { details.append("Ghost Mode preference") }
             if stars > 0 { details.append("\(stars) local Stars") }
             if grams > 0 { details.append("\(String(format: "%.4g", grams)) local Grams") }
+            if localGiftCount > 0 { details.append("\(localGiftCount) local gifts") }
 
             items.append(PeerInfoScreenLabeledValueItem(
                 id: itemId,
