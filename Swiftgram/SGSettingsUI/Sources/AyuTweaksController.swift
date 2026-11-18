@@ -29,6 +29,7 @@ private enum AyuLink: Hashable {
     case addStars
     case addGrams
     case addGift
+    case openTelegramGifts
     case openGallery
     case openWorkshop
     case upgradeGift(Int)
@@ -100,6 +101,14 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
                 defaults.set(min(1_000_000, defaults.integer(forKey: "ayu.preferences.visualStars") + 100), forKey: "ayu.preferences.visualStars")
             case .addGrams:
                 defaults.set(max(0, defaults.double(forKey: "ayu.preferences.visualGrams") + 10), forKey: "ayu.preferences.visualGrams")
+            case .openTelegramGifts:
+                let peerSignal = context.engine.data.get(TelegramEngine.EngineData.Item.Peer.Peer(id: context.account.peerId))
+                let _ = (peerSignal |> deliverOnMainQueue).start(next: { peer in
+                    guard let peer, let controller = context.sharedContext.makePeerInfoController(context: context, updatedPresentationData: nil, peer: peer, mode: .generic, avatarInitiallyExpanded: false, fromChat: false, requestsContext: nil) else {
+                        return
+                    }
+                    settingsController?.navigationController?.pushViewController(controller, animated: true)
+                })
             case .openGallery:
                 let gallery = AyuGiftGalleryController()
                 settingsController?.navigationController?.pushViewController(gallery, animated: true)
@@ -165,8 +174,9 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
 
         entries.append(.header(id: id.count, section: .gifts, text: "Local gift collection", badge: nil))
         entries.append(.notice(id: id.count, section: .gifts, text: "Gifts: \(gifts.count)   •   Local collectibles: \(localNFTCount)"))
-        entries.append(.disclosure(id: id.count, section: .gifts, link: .openGallery, text: "Open collectible gallery"))
-        entries.append(.disclosure(id: id.count, section: .gifts, link: .openWorkshop, text: "Gift Workshop · upgrade, craft, marketplace, TON"))
+        entries.append(.disclosure(id: id.count, section: .gifts, link: .openTelegramGifts, text: "Open Telegram Gifts · real collection and actions"))
+        entries.append(.disclosure(id: id.count, section: .gifts, link: .openGallery, text: "Open local collectible preview gallery"))
+        entries.append(.disclosure(id: id.count, section: .gifts, link: .openWorkshop, text: "Gift Workshop · workflow preview"))
         entries.append(.disclosure(id: id.count, section: .gifts, link: .addGift, text: "Add sample gift"))
         for (giftIndex, gift) in gifts.enumerated() {
             let status = gift.isNFT
@@ -178,7 +188,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
             }
         }
         if gifts.isEmpty {
-            entries.append(.notice(id: id.count, section: .gifts, text: "Add a sample gift to try the local NFT upgrade."))
+            entries.append(.notice(id: id.count, section: .gifts, text: "Add a sample gift to try the local collectible preview."))
         }
         entries.append(.notice(id: id.count, section: .gifts, text: "Upgrade assigns a local collectible number and animated frame. It is a visual client-side conversion, not a blockchain mint or Telegram gift transfer."))
         entries.append(.disclosure(id: id.count, section: .gifts, link: .reset, text: "Reset all AyuTweaks data"))
