@@ -11,8 +11,8 @@ permissions:
 
 jobs:
   build:
-    # GitHub-hosted macOS 26 image; select the Xcode version pinned by the repo.
-    runs-on: macos-26
+    # Xcode 27 image provides the pinned Xcode 27 toolchain on macOS 27 (Apple Silicon).
+    runs-on: xcode-27
     timeout-minutes: 240
 
     steps:
