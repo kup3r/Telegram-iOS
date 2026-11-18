@@ -126,8 +126,10 @@ def process_provisioning_profile(source, destination, certificate_data, signing_
     # The bundled template does not carry this entitlement, so explicitly restore the
     # production value expected by an App Store-style device build.
     if os.path.basename(source) == 'Telegram.mobileprovision':
+        # The bundled profile may already contain aps-environment. Replace it
+        # rather than inserting a duplicate key (plutil -insert fails if present).
         run_executable_with_output('plutil', arguments=[
-            '-insert', 'Entitlements.aps-environment', '-string', 'production', parsed_plist_file
+            '-replace', 'Entitlements.aps-environment', '-string', 'production', parsed_plist_file
         ], check_result=True)
 
     # Remove the DER-Encoded-Profile (signature)
