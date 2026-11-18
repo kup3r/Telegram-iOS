@@ -29,3 +29,15 @@ The "upgrade" action only changes a locally stored gift's visual state and assig
 The new destination is wired into the current Swiftgram settings navigation. The self-profile row list shows Ayu preferences, local balances, and individual local gifts; these are presentation-only rows, not the Telegram wallet or server gift list. The source glob in `Swiftgram/SGSettingsUI/BUILD` includes the new controller automatically.
 
 A full Bazel build and simulator visual inspection have not yet been run. Before release, compile the Telegram target and verify the settings navigation and self-profile row on a simulator.
+
+
+## Collectible gift workflow UI
+
+The native Swiftgram Gift Workshop now presents the official Telegram collectible workflow:
+- Upgrade preview: random model, pattern and backdrop attributes, plus Stars price preview.
+- Crafting bench: 1–4 collectibles of the same base gift type; success chance is the sum of `craft_chance_permille` values.
+- Marketplace: Stars / TON price draft, unlisting, attribute filters and offer concepts.
+- Transfer: recipient and transfer-fee preview.
+- TON export: eligibility and 2-step verification requirements.
+
+These are visual prototypes only. They do not invoke Telegram payment forms, mutate saved gifts, create marketplace listings, transfer ownership or export assets to TON. The live Telegram API documents the corresponding methods in https://core.telegram.org/api/gifts.
