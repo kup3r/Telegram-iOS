@@ -469,7 +469,7 @@ def resolve_codesigning(arguments, base_path, build_configuration, provisioning_
     )
 
 
-def resolve_configuration(base_path, bazel_command_line: BazelCommandLine, arguments, additional_codesigning_output_path):
+def resolve_configuration(base_path, bazel_command_line: BazelCommandLine, arguments, additional_codesigning_output_path, allow_missing_aps_environment=False):
     configuration_repository_path = '{}/build-input/configuration-repository'.format(base_path)
     os.makedirs(configuration_repository_path, exist_ok=True)
 
@@ -496,7 +496,7 @@ def resolve_configuration(base_path, bazel_command_line: BazelCommandLine, argum
         provisioning_profiles_path=provisioning_path,
         additional_codesigning_output_path=additional_codesigning_output_path
     )
-    if codesigning_data.aps_environment is None:
+    if codesigning_data.aps_environment is None and not allow_missing_aps_environment:
         print('Could not find a valid aps-environment entitlement in the provided provisioning profiles')
         sys.exit(1)
 
@@ -1552,7 +1552,8 @@ if __name__ == '__main__':
                 base_path=os.getcwd(),
                 bazel_command_line=None,
                 arguments=args,
-                additional_codesigning_output_path=remote_input_path
+                additional_codesigning_output_path=remote_input_path,
+                allow_missing_aps_environment=True
             )
 
             GenerateProfiles.generate_provisioning_profiles(source_path=remote_input_path + '/profiles', destination_path=args.destination, certs_path=args.certsPath)
