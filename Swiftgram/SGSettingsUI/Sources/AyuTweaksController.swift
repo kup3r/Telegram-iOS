@@ -30,6 +30,7 @@ private enum AyuLink: Hashable {
     case addGrams
     case addGift
     case openGallery
+    case openWorkshop
     case upgradeGift(Int)
     case reset
 }
@@ -102,6 +103,9 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
             case .openGallery:
                 let gallery = AyuGiftGalleryController()
                 settingsController?.navigationController?.pushViewController(gallery, animated: true)
+            case .openWorkshop:
+                let workshop = AyuGiftWorkshopController()
+                settingsController?.navigationController?.pushViewController(workshop, animated: true)
             case .addGift:
                 var gifts = ayuGiftRecords(defaults: defaults)
                 gifts.append(AyuStoredGift(id: UUID(), title: "Ayu Gift", rarity: "common", isNFT: false, nftNumber: nil, hasAnimatedFrame: false))
@@ -162,6 +166,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
         entries.append(.header(id: id.count, section: .gifts, text: "Local gift collection", badge: nil))
         entries.append(.notice(id: id.count, section: .gifts, text: "Gifts: \(gifts.count)   •   Local collectibles: \(localNFTCount)"))
         entries.append(.disclosure(id: id.count, section: .gifts, link: .openGallery, text: "Open collectible gallery"))
+        entries.append(.disclosure(id: id.count, section: .gifts, link: .openWorkshop, text: "Gift Workshop · upgrade, craft, marketplace, TON"))
         entries.append(.disclosure(id: id.count, section: .gifts, link: .addGift, text: "Add sample gift"))
         for (giftIndex, gift) in gifts.enumerated() {
             let status = gift.isNFT
