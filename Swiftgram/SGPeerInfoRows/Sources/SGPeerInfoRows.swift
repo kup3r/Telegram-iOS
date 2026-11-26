@@ -153,7 +153,7 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
                 id: itemId,
                 context: context,
                 label: organizationIcon + "Значок организации",
-                text: "Аккаунт верифицирован организацией «\(organization)»",
+                text: "Локальный декоративный значок · \(organization)",
                 textColor: .primary,
                 action: nil,
                 longTapAction: nil,
@@ -164,6 +164,9 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
         }
         let stars = defaults.integer(forKey: "ayu.preferences.visualStars")
         let grams = defaults.double(forKey: "ayu.preferences.visualGrams")
+        let tonPreview = defaults.string(forKey: "ayu.preferences.visualTon")
+        let collectibleUsername = defaults.string(forKey: "ayu.preferences.collectibleUsername")
+        let collectiblePhone = defaults.string(forKey: "ayu.preferences.collectiblePhone")
         let localGifts: [[String: Any]] = {
             guard let data = defaults.data(forKey: "ayu.gifts.localCollection"),
                   let records = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
@@ -172,7 +175,7 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
             return records
         }()
 
-        if localPremium || verification != 0 || level != 80 || ghostMode || stars > 0 || grams > 0 || !localGifts.isEmpty {
+        if localPremium || verification != 0 || level != 80 || ghostMode || stars > 0 || grams > 0 || tonPreview != nil || collectibleUsername != nil || collectiblePhone != nil || !localGifts.isEmpty {
             var details: [String] = []
             if localPremium { details.append("Premium (local)") }
             switch verification {
@@ -185,6 +188,9 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
             if ghostMode { details.append("Ghost Mode preference") }
             if stars > 0 { details.append("\(stars) local Stars") }
             if grams > 0 { details.append("\(String(format: "%.4g", grams)) local Grams") }
+            if let tonPreview { details.append("TON preview: \(tonPreview)") }
+            if defaults.bool(forKey: "ayu.preferences.collectibleUsernames"), let collectibleUsername { details.append("Local collectible label: @\(collectibleUsername)") }
+            if defaults.bool(forKey: "ayu.preferences.collectiblePhoneNumbers"), let collectiblePhone { details.append("Local collectible phone label: \(collectiblePhone)") }
             if !localGifts.isEmpty { details.append("\(localGifts.count) local gifts") }
 
             items.append(PeerInfoScreenLabeledValueItem(
@@ -201,8 +207,8 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
             itemId += 1
         }
 
-        if stars > 0 || grams > 0 {
-            let balanceText = "Stars: \(stars.formatted())  •  Grams: \(String(format: "%.4g", grams))"
+        if stars > 0 || grams > 0 || tonPreview != nil {
+            let balanceText = "Stars: \(stars.formatted())  •  Grams: \(String(format: "%.4g", grams))" + (tonPreview.map { "  •  TON preview: \($0)" } ?? "")
             items.append(PeerInfoScreenLabeledValueItem(
                 id: itemId,
                 context: context,
@@ -222,8 +228,10 @@ func sgPeerInfoProfileItems(nearestChatParticipant: (String?, Int32?), data: Pee
             let rarity = (gift["rarity"] as? String ?? "common").capitalized
             let isNFT = gift["isNFT"] as? Bool ?? false
             let number = gift["nftNumber"] as? Int
+            let showNumber = defaults.object(forKey: "ayu.preferences.collectibleNumbers") == nil || defaults.bool(forKey: "ayu.preferences.collectibleNumbers")
+            let animationsEnabled = defaults.object(forKey: "ayu.preferences.giftAnimations") == nil || defaults.bool(forKey: "ayu.preferences.giftAnimations")
             let giftDescription = isNFT
-                ? "Local collectible #\(number ?? 0)  •  \(rarity)  •  animated frame"
+                ? "Local collectible\(showNumber ? " #\(number ?? 0)" : "")  •  \(rarity)" + (animationsEnabled ? "  •  animated frame" : "")
                 : "\(rarity)  •  local gift"
 
             items.append(PeerInfoScreenLabeledValueItem(

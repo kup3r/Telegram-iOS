@@ -61,11 +61,11 @@ public final class AyuGiftWorkshopController: UIViewController {
         )
         addSection(
             title: "Craft collectibles",
-            description: "Combine 1–4 collectible gifts of the same base type. The success chance is the sum of each gift's craft_chance_permille.",
+            description: "Play a local merge animation with sample collectibles. No real gifts are selected, consumed or crafted.",
             symbol: "wand.and.stars",
             tint: UIColor(red: 0.24, green: 0.68, blue: 0.53, alpha: 1),
-            buttonTitle: "Open crafting bench",
-            action: #selector(showCrafting)
+            buttonTitle: "Play local merge animation",
+            action: #selector(playCraftAnimation)
         )
         addSection(
             title: "Gift marketplace",
@@ -159,7 +159,9 @@ public final class AyuGiftWorkshopController: UIViewController {
             message: "Eligible gifts: \(ordinaryCount) local sample(s)\n\nPossible attributes\n• Model — random collectible artwork\n• Pattern — artist-designed motif\n• Backdrop — color palette and rarity\n\nUpgrade price: live Stars quote unavailable in prototype mode. Telegram's preview endpoint supplies sample attributes and current/future prices.",
             preferredStyle: .actionSheet
         )
-        alert.addAction(UIAlertAction(title: "Preview only", style: .default))
+        alert.addAction(UIAlertAction(title: "Preview upgrade animation", style: .default) { [weak self] _ in
+            self?.playGiftAnimation(symbol: "gift.fill", title: "Local upgrade preview")
+        })
         alert.addAction(UIAlertAction(title: "Upgrade requires Telegram payment", style: .destructive) { [weak self] _ in
             self?.showNotice("Payment not submitted", message: "The real upgrade flow requires an eligible saved gift, Telegram's upgrade preview, a Stars payment form and the resulting Telegram update. This prototype does not spend Stars.")
         })
@@ -167,17 +169,73 @@ public final class AyuGiftWorkshopController: UIViewController {
         present(alert, animated: true)
     }
 
-    @objc private func showCrafting() {
-        let gifts = localGifts().filter { $0["isNFT"] as? Bool == true }
-        let chance = gifts.reduce(0) { $0 + (($1["craftChancePermille"] as? Int) ?? 0) }
-        let percent = Double(chance) / 10.0
-        let message = "Collectibles available locally: \(gifts.count)\n\nSelect 1–4 items of the same original gift type. Telegram calculates the displayed success chance by summing craft_chance_permille for the selected gifts.\n\nSample chance data: \(String(format: "%.1f", percent))% (0% when no real chance data is present)."
-        let alert = UIAlertController(title: "Crafting bench", message: message, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "Select collectibles", style: .default) { [weak self] _ in
-            self?.showNotice("Crafting preview", message: "The live craft picker needs the owned collectible IDs, their base gift_id and can_craft_at eligibility from Telegram. Local samples do not contain those server fields.")
-        })
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(alert, animated: true)
+    @objc private func playCraftAnimation() {
+        guard defaults.object(forKey: "ayu.preferences.giftAnimations") == nil || defaults.bool(forKey: "ayu.preferences.giftAnimations") else {
+            showNotice("Animations are off", message: "Turn on Gift upgrade and merge animations in Settings › Visual to preview this effect.")
+            return
+        }
+        let count = localGifts().filter { $0["isNFT"] as? Bool == true }.count
+        guard count >= 2 else {
+            showNotice("Add local collectibles", message: "Create at least two sample collectibles in the local gift collection to preview the merge animation. These samples are not Telegram gifts.")
+            return
+        }
+        playGiftAnimation(symbol: "sparkles", title: "Local merge preview")
+    }
+
+    private func playGiftAnimation(symbol: String, title: String) {
+        let overlay = UIView()
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.88)
+        overlay.alpha = 0
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.textColor = .white
+        titleLabel.font = .systemFont(ofSize: 18, weight: .semibold)
+        titleLabel.textAlignment = .center
+        let result = UIImageView(image: UIImage(systemName: symbol))
+        result.tintColor = UIColor(red: 0.78, green: 0.57, blue: 0.19, alpha: 1)
+        result.contentMode = .scaleAspectFit
+        result.alpha = 0
+        result.transform = CGAffineTransform(scaleX: 0.2, y: 0.2)
+        let sourceA = UIImageView(image: UIImage(systemName: "gift.fill"))
+        let sourceB = UIImageView(image: UIImage(systemName: "gift.fill"))
+        [sourceA, sourceB].forEach { $0.tintColor = .white; $0.contentMode = .scaleAspectFit }
+        let content = UIStackView(arrangedSubviews: [titleLabel, result])
+        content.axis = .vertical
+        content.alignment = .center
+        content.spacing = 20
+        overlay.addSubview(content)
+        overlay.addSubview(sourceA)
+        overlay.addSubview(sourceB)
+        view.addSubview(overlay)
+        [content, result, sourceA, sourceB].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
+        NSLayoutConstraint.activate([
+            overlay.leadingAnchor.constraint(equalTo: view.leadingAnchor), overlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            overlay.topAnchor.constraint(equalTo: view.topAnchor), overlay.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            content.centerXAnchor.constraint(equalTo: overlay.centerXAnchor), content.centerYAnchor.constraint(equalTo: overlay.centerYAnchor),
+            result.widthAnchor.constraint(equalToConstant: 90), result.heightAnchor.constraint(equalToConstant: 90),
+            sourceA.centerYAnchor.constraint(equalTo: content.centerYAnchor), sourceA.trailingAnchor.constraint(equalTo: overlay.centerXAnchor, constant: -20),
+            sourceB.centerYAnchor.constraint(equalTo: content.centerYAnchor), sourceB.leadingAnchor.constraint(equalTo: overlay.centerXAnchor, constant: 20),
+            sourceA.widthAnchor.constraint(equalToConstant: 46), sourceA.heightAnchor.constraint(equalToConstant: 46),
+            sourceB.widthAnchor.constraint(equalToConstant: 46), sourceB.heightAnchor.constraint(equalToConstant: 46)
+        ])
+        UIView.animate(withDuration: 0.18, animations: { overlay.alpha = 1 }) { _ in
+            UIView.animate(withDuration: 0.42, delay: 0.08, usingSpringWithDamping: 0.62, initialSpringVelocity: 0.2, options: [.curveEaseInOut]) {
+                sourceA.transform = CGAffineTransform(translationX: 45, y: -18).scaledBy(x: 0.4, y: 0.4)
+                sourceB.transform = CGAffineTransform(translationX: -45, y: 18).scaledBy(x: 0.4, y: 0.4)
+                sourceA.alpha = 0
+                sourceB.alpha = 0
+            } completion: { _ in
+                UIView.animate(withDuration: 0.48, delay: 0, usingSpringWithDamping: 0.55, initialSpringVelocity: 0.4, options: [.curveEaseOut]) {
+                    result.alpha = 1
+                    result.transform = .identity
+                } completion: { _ in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+                        UIView.animate(withDuration: 0.2, animations: { overlay.alpha = 0 }) { _ in overlay.removeFromSuperview() }
+                    }
+                }
+            }
+        }
     }
 
     @objc private func showMarketplace() {

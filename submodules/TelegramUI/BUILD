@@ -1,4 +1,4 @@
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_test")
 
 # MARK: Swiftgram
 load(
@@ -640,4 +640,19 @@ swift_library(
     visibility = [
         "//visibility:public",
     ],
+)
+
+# Host-side tests for the local-only collectible store. This target compiles the Foundation/Combine
+# model directly so its persistence and upgrade rules can be tested without an iOS simulator.
+swift_library(
+    name = "AyuGiftStoreTestSupport",
+    module_name = "AyuGiftStoreTestSupport",
+    srcs = ["Sources/AyuFeatures/AyuGiftStore.swift"],
+    visibility = ["//visibility:private"],
+)
+
+swift_test(
+    name = "AyuGiftStoreTests",
+    srcs = ["Tests/AyuGiftStoreTests.swift"],
+    deps = [":AyuGiftStoreTestSupport"],
 )

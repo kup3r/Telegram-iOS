@@ -11,6 +11,7 @@ import SGItemListUI
 private enum AyuSection: Int32, SGItemListSection {
     case profile
     case privacy
+    case visuals
     case balances
     case gifts
 }
@@ -18,6 +19,11 @@ private enum AyuSection: Int32, SGItemListSection {
 private enum AyuBoolSetting: Hashable {
     case localPremium
     case ghostMode
+    case nftVisuals
+    case collectibleNumbers
+    case collectibleUsernames
+    case collectiblePhoneNumbers
+    case giftAnimations
 }
 
 private enum AyuSelector: Hashable {
@@ -29,6 +35,9 @@ private enum AyuLink: Hashable {
     case decreaseLevel
     case addStars
     case addGrams
+    case setTonBalance
+    case setCollectibleUsername
+    case setCollectiblePhone
     case addGift
     case openTelegramGifts
     case openGallery
@@ -74,6 +83,16 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
                 defaults.set(value, forKey: "ayu.preferences.localPremium")
             case .ghostMode:
                 defaults.set(value, forKey: "ayu.preferences.ghostMode")
+            case .nftVisuals:
+                defaults.set(value, forKey: "ayu.preferences.nftVisuals")
+            case .collectibleNumbers:
+                defaults.set(value, forKey: "ayu.preferences.collectibleNumbers")
+            case .collectibleUsernames:
+                defaults.set(value, forKey: "ayu.preferences.collectibleUsernames")
+            case .collectiblePhoneNumbers:
+                defaults.set(value, forKey: "ayu.preferences.collectiblePhoneNumbers")
+            case .giftAnimations:
+                defaults.set(value, forKey: "ayu.preferences.giftAnimations")
             }
             refresh.set(true)
         },
@@ -92,6 +111,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
             selectorPresenter?(setting, options)
         },
         openDisclosureLink: { link in
+            var animateGiftUpgrade = false
             switch link {
             case .increaseLevel:
                 defaults.set(min(1000, max(0, defaults.integer(forKey: "ayu.preferences.profileLevel") + 10)), forKey: "ayu.preferences.profileLevel")
@@ -102,6 +122,28 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
                 defaults.set(min(1_000_000, defaults.integer(forKey: "ayu.preferences.visualStars") + 100), forKey: "ayu.preferences.visualStars")
             case .addGrams:
                 defaults.set(max(0, defaults.double(forKey: "ayu.preferences.visualGrams") + 10), forKey: "ayu.preferences.visualGrams")
+            case .setTonBalance, .setCollectibleUsername, .setCollectiblePhone:
+                let title: String
+                let key: String
+                switch link {
+                case .setTonBalance: title = "Local TON balance preview"; key = "ayu.preferences.visualTon"
+                case .setCollectibleUsername: title = "Collectible username label"; key = "ayu.preferences.collectibleUsername"
+                default: title = "Collectible phone label"; key = "ayu.preferences.collectiblePhone"
+                }
+                let alert = UIAlertController(title: title, message: "Optional local display value. This does not read or change your Telegram account or wallet.", preferredStyle: .alert)
+                alert.addTextField { field in
+                    field.text = defaults.string(forKey: key)
+                    field.placeholder = link == .setTonBalance ? "Leave empty if unset" : "Enter a value yourself"
+                    if link == .setTonBalance { field.keyboardType = .decimalPad }
+                }
+                alert.addAction(UIAlertAction(title: "Save preview", style: .default) { _ in
+                    let value = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    if value.isEmpty { defaults.removeObject(forKey: key) }
+                    else { defaults.set(value, forKey: key) }
+                    refresh.set(true)
+                })
+                alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                settingsController?.present(alert, animated: true)
             case .openTelegramGifts:
                 let peerSignal = context.engine.data.get(TelegramEngine.EngineData.Item.Peer.Peer(id: context.account.peerId))
                 let _ = (peerSignal |> deliverOnMainQueue).start(next: { peer in
@@ -130,6 +172,7 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
                     gifts[giftIndex].hasAnimatedFrame = true
                     gifts[giftIndex].rarity = gifts[giftIndex].rarity == "legendary" ? "legendary" : "epic"
                     saveAyuGiftRecords(gifts, defaults: defaults)
+                    animateGiftUpgrade = defaults.object(forKey: "ayu.preferences.giftAnimations") == nil || defaults.bool(forKey: "ayu.preferences.giftAnimations")
                 }
             case .reset:
                 defaults.set(false, forKey: "ayu.preferences.localPremium")
@@ -138,10 +181,17 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
                 defaults.set(false, forKey: "ayu.preferences.ghostMode")
                 defaults.set(0, forKey: "ayu.preferences.visualStars")
                 defaults.set(0.0, forKey: "ayu.preferences.visualGrams")
+                ["ayu.preferences.nftVisuals", "ayu.preferences.collectibleNumbers", "ayu.preferences.collectibleUsernames", "ayu.preferences.collectiblePhoneNumbers", "ayu.preferences.giftAnimations", "ayu.preferences.visualTon", "ayu.preferences.collectibleUsername", "ayu.preferences.collectiblePhone"].forEach(defaults.removeObject(forKey:))
                 defaults.removeObject(forKey: "ayu.gifts.localCollection")
                 defaults.removeObject(forKey: "ayu.gifts.nextLocalNumber")
             }
-            refresh.set(true)
+            if animateGiftUpgrade, let view = settingsController?.view {
+                UIView.transition(with: view, duration: 0.45, options: [.transitionFlipFromTop, .allowAnimatedContent]) {
+                    refresh.set(true)
+                }
+            } else {
+                refresh.set(true)
+            }
         }
     )
 
@@ -167,10 +217,22 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
         entries.append(.toggle(id: id.count, section: .privacy, settingName: .ghostMode, value: defaults.bool(forKey: "ayu.preferences.ghostMode"), text: "Ghost Mode preference", enabled: true))
         entries.append(.notice(id: id.count, section: .privacy, text: "Saved locally only. This does not change read receipts, online status, or network activity."))
 
+        entries.append(.header(id: id.count, section: .visuals, text: "Visual", badge: nil))
+        entries.append(.toggle(id: id.count, section: .visuals, settingName: .nftVisuals, value: defaults.object(forKey: "ayu.preferences.nftVisuals") == nil ? true : defaults.bool(forKey: "ayu.preferences.nftVisuals"), text: "NFT visual style", enabled: true))
+        entries.append(.toggle(id: id.count, section: .visuals, settingName: .collectibleNumbers, value: defaults.object(forKey: "ayu.preferences.collectibleNumbers") == nil ? true : defaults.bool(forKey: "ayu.preferences.collectibleNumbers"), text: "Collectible numbers (local samples)", enabled: true))
+        entries.append(.toggle(id: id.count, section: .visuals, settingName: .collectibleUsernames, value: defaults.bool(forKey: "ayu.preferences.collectibleUsernames"), text: "Collectible username label", enabled: true))
+        entries.append(.disclosure(id: id.count, section: .visuals, link: .setCollectibleUsername, text: "Set local username label · \(defaults.string(forKey: "ayu.preferences.collectibleUsername") ?? "unset")"))
+        entries.append(.toggle(id: id.count, section: .visuals, settingName: .collectiblePhoneNumbers, value: defaults.bool(forKey: "ayu.preferences.collectiblePhoneNumbers"), text: "Collectible phone label", enabled: true))
+        entries.append(.disclosure(id: id.count, section: .visuals, link: .setCollectiblePhone, text: "Set local phone label · \(defaults.string(forKey: "ayu.preferences.collectiblePhone") ?? "unset")"))
+        entries.append(.toggle(id: id.count, section: .visuals, settingName: .giftAnimations, value: defaults.object(forKey: "ayu.preferences.giftAnimations") == nil ? true : defaults.bool(forKey: "ayu.preferences.giftAnimations"), text: "Gift upgrade and merge animations", enabled: true))
+        entries.append(.notice(id: id.count, section: .visuals, text: "All labels and effects here are local previews. No collectible username or phone number is fetched or assigned."))
+
         entries.append(.header(id: id.count, section: .balances, text: "Local balance preview", badge: nil))
-        entries.append(.notice(id: id.count, section: .balances, text: "Stars: \(stars)   •   Grams: \(String(format: "%.4g", grams))"))
+        let ton = defaults.string(forKey: "ayu.preferences.visualTon") ?? "unset"
+        entries.append(.notice(id: id.count, section: .balances, text: "Stars: \(stars)   •   Grams: \(String(format: "%.4g", grams))   •   TON preview: \(ton)"))
         entries.append(.disclosure(id: id.count, section: .balances, link: .addStars, text: "Add 100 local Stars"))
         entries.append(.disclosure(id: id.count, section: .balances, link: .addGrams, text: "Add 10 local Grams"))
+        entries.append(.disclosure(id: id.count, section: .balances, link: .setTonBalance, text: "Set local TON balance preview"))
         entries.append(.notice(id: id.count, section: .balances, text: "Preview values only; they do not affect wallet, payments, or server balances."))
 
         entries.append(.header(id: id.count, section: .gifts, text: "Local gift collection", badge: nil))

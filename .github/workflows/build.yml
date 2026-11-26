@@ -63,6 +63,11 @@ jobs:
             --configurationPath="build-system/appstore-configuration.json" \
             --codesigningInformationPath=build-system/fake-codesigning \
             --destination=build-system/fake-codesigning/profiles
+          # Profile generation uses a temporary keychain and may change the user's keychain search list.
+          # Reinstall the fake signing identity last so Bazel's codesign action can resolve the identity
+          # embedded in each generated profile (including Intents.mobileprovision).
+          python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
+          security find-identity -v -p codesigning temp.keychain
           python3 -u build-system/Make/Make.py \
             --bazelUserRoot="$BAZEL_USER_ROOT" \
             build \
@@ -92,6 +97,10 @@ jobs:
           if [[ -d build/DSYMs ]] && find build/DSYMs -mindepth 1 -maxdepth 1 | grep -q .; then
             ditto -c -k --sequesterRsrc --keepParent build/DSYMs "$OUTPUT_PATH/Telegram.DSYMs.zip"
           fi
+
+      - name: Test local gift store
+        shell: bash
+        run: ./build-input/bazel-9.2.0-darwin-arm64 --output_user_root=/private/var/tmp/_bazel_containerhost test //submodules/TelegramUI:AyuGiftStoreTests --test_output=all
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

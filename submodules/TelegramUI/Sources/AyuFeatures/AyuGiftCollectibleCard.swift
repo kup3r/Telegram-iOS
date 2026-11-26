@@ -20,22 +20,27 @@ public struct AyuGiftCollectibleCard: View {
     }
 
     public var body: some View {
+        let defaults = UserDefaults.standard
+        let nftVisualsEnabled = defaults.object(forKey: "ayu.preferences.nftVisuals") == nil || defaults.bool(forKey: "ayu.preferences.nftVisuals")
+        let showNumber = defaults.object(forKey: "ayu.preferences.collectibleNumbers") == nil || defaults.bool(forKey: "ayu.preferences.collectibleNumbers")
+        let animationsEnabled = defaults.object(forKey: "ayu.preferences.giftAnimations") == nil || defaults.bool(forKey: "ayu.preferences.giftAnimations")
+        let showCollectible = gift.isNFT && nftVisualsEnabled
         VStack(spacing: 10) {
             ZStack(alignment: .topTrailing) {
                 RoundedRectangle(cornerRadius: 18)
                     .fill(
                         LinearGradient(
-                            colors: gift.isNFT
+                            colors: showCollectible
                                 ? [accent.opacity(0.9), .black.opacity(0.72), accent.opacity(0.48)]
                                 : [.secondary.opacity(0.25), .secondary.opacity(0.08)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                Image(systemName: gift.isNFT ? "gift.fill" : "gift")
+                Image(systemName: showCollectible ? "gift.fill" : "gift")
                     .font(.system(size: 38, weight: .medium))
                     .foregroundStyle(.white)
-                if gift.isNFT {
+                if showCollectible {
                     RoundedRectangle(cornerRadius: 18)
                         .stroke(
                             LinearGradient(
@@ -56,7 +61,7 @@ public struct AyuGiftCollectibleCard: View {
             }
             .frame(height: 112)
             .onAppear {
-                guard gift.isNFT else { return }
+                guard showCollectible && animationsEnabled else { return }
                 withAnimation(.easeInOut(duration: 1.25).repeatForever(autoreverses: true)) {
                     glow = true
                 }
@@ -64,8 +69,8 @@ public struct AyuGiftCollectibleCard: View {
 
             VStack(spacing: 3) {
                 Text(gift.title).font(.headline).lineLimit(1)
-                if gift.isNFT {
-                    Text("#\(gift.nftNumber ?? 0)  ·  \(gift.rarity.title)")
+                if showCollectible {
+                    Text((showNumber ? "#\(gift.nftNumber ?? 0)  ·  " : "") + gift.rarity.title)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(accent)
                 } else {
@@ -73,7 +78,7 @@ public struct AyuGiftCollectibleCard: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                if gift.isNFT && gift.hasAnimatedFrame {
+                if showCollectible && gift.hasAnimatedFrame && animationsEnabled {
                     Label("Animated collectible frame", systemImage: "sparkles")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(.secondary)
