@@ -137,7 +137,17 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
                     if link == .setTonBalance { field.keyboardType = .decimalPad }
                 }
                 alert.addAction(UIAlertAction(title: "Save preview", style: .default) { _ in
-                    let value = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    var value = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    if link == .setTonBalance, !value.isEmpty, let amount = Double(value), amount.isFinite, amount >= 0 {
+                        value = amount.formatted(.number.precision(.fractionLength(0...6)))
+                    } else if link == .setTonBalance, !value.isEmpty {
+                        let invalidValue = UIAlertController(title: "Invalid TON preview", message: "Enter a non-negative numeric value, or leave it empty to clear the preview.", preferredStyle: .alert)
+                        invalidValue.addAction(UIAlertAction(title: "OK", style: .default))
+                        settingsController?.present(invalidValue, animated: true)
+                        return
+                    } else if link == .setCollectibleUsername {
+                        value = value.trimmingCharacters(in: CharacterSet(charactersIn: "@"))
+                    }
                     if value.isEmpty { defaults.removeObject(forKey: key) }
                     else { defaults.set(value, forKey: key) }
                     refresh.set(true)
@@ -243,11 +253,11 @@ public func ayuTweaksController(context: AccountContext) -> ViewController {
         entries.append(.disclosure(id: id.count, section: .gifts, link: .addGift, text: "Add sample gift"))
         for (giftIndex, gift) in gifts.enumerated() {
             let status = gift.isNFT
-                ? "NFT #\(gift.nftNumber ?? 0) · \(gift.rarity.capitalized) · animated frame"
+                ? "Local collectible #\(gift.nftNumber ?? 0) · \(gift.rarity.capitalized) · animated frame"
                 : "\(gift.rarity.capitalized) · ordinary local gift"
             entries.append(.notice(id: id.count, section: .gifts, text: "\(gift.title) — \(status)"))
             if !gift.isNFT {
-                entries.append(.disclosure(id: id.count, section: .gifts, link: .upgradeGift(giftIndex), text: "Upgrade “\(gift.title)” to NFT collectible"))
+                entries.append(.disclosure(id: id.count, section: .gifts, link: .upgradeGift(giftIndex), text: "Upgrade sample “\(gift.title)” to local collectible"))
             }
         }
         if gifts.isEmpty {
